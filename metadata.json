@@ -1,0 +1,6 @@
+{
+  "name": "Limuna",
+  "description": "Agentless Linux Server Management Panel using SSH for server metrics, processes, block devices, and LVM partition resizing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
