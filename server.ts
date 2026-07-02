@@ -3,6 +3,7 @@ import path from "path";
 import crypto from "crypto";
 import { Client } from "ssh2";
 import { createServer as createViteServer } from "vite";
+import { WebSocketServer } from "ws";
 
 const app = express();
 const PORT = 3000;
@@ -1241,6 +1242,135 @@ app.post("/api/ufw/move", async (req, res) => {
   }
 });
 
+function setupWebSocketServer(server: any) {
+  const wss = new WebSocketServer({ noServer: true });
+
+  server.on("upgrade", (request: any, socket: any, head: any) => {
+    try {
+      const { pathname } = new URL(request.url || "", `http://${request.headers.host || "localhost"}`);
+
+      if (pathname === "/api/ssh-websocket") {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit("connection", ws, request);
+        });
+      } else {
+        socket.destroy();
+      }
+    } catch (err) {
+      socket.destroy();
+    }
+  });
+
+  wss.on("connection", (ws) => {
+    let client: Client | null = null;
+    let shellStream: any = null;
+
+    ws.on("message", (message) => {
+      try {
+        const payload = JSON.parse(message.toString());
+
+        if (payload.type === "init") {
+          const { token, cols, rows } = payload;
+          if (!token) {
+            ws.send(JSON.stringify({ type: "error", message: "SSH Token is required" }));
+            ws.close();
+            return;
+          }
+
+          // Decrypt config
+          let config: SSHConfig;
+          try {
+            const decrypted = decrypt(token);
+            const parsed = JSON.parse(decrypted);
+            config = {
+              host: parsed.host,
+              port: Number(parsed.port) || 22,
+              username: parsed.username,
+              password: parsed.password || undefined,
+              privateKey: parsed.privateKey || undefined,
+            };
+          } catch (err: any) {
+            ws.send(JSON.stringify({ type: "error", message: `Failed to decrypt SSH token: ${err.message}` }));
+            ws.close();
+            return;
+          }
+
+          ws.send(JSON.stringify({ type: "status", message: `Connecting to ${config.username}@${config.host}...` }));
+
+          client = new Client();
+          client.on("ready", () => {
+            ws.send(JSON.stringify({ type: "status", message: "SSH Connected. Requesting interactive shell..." }));
+
+            client!.shell({ term: "xterm-256color", cols: cols || 80, rows: rows || 24 }, (err, stream) => {
+              if (err) {
+                ws.send(JSON.stringify({ type: "error", message: `Failed to open shell: ${err.message}` }));
+                ws.close();
+                return;
+              }
+
+              shellStream = stream;
+              ws.send(JSON.stringify({ type: "ready" }));
+
+              stream.on("data", (data: Buffer) => {
+                ws.send(JSON.stringify({ type: "data", data: data.toString("utf8") }));
+              });
+
+              stream.on("close", () => {
+                ws.send(JSON.stringify({ type: "status", message: "Session closed by remote host." }));
+                ws.close();
+              });
+
+              stream.stderr.on("data", (data: Buffer) => {
+                ws.send(JSON.stringify({ type: "data", data: data.toString("utf8") }));
+              });
+            });
+          });
+
+          client.on("error", (err) => {
+            ws.send(JSON.stringify({ type: "error", message: `SSH Connection Error: ${err.message}` }));
+            ws.close();
+          });
+
+          client.on("close", () => {
+            ws.close();
+          });
+
+          client.connect({
+            host: config.host,
+            port: config.port,
+            username: config.username,
+            password: config.password,
+            privateKey: config.privateKey,
+            readyTimeout: 15000,
+            keepaliveInterval: 10000,
+            keepaliveCountMax: 3,
+          });
+
+        } else if (payload.type === "data") {
+          if (shellStream) {
+            shellStream.write(payload.data);
+          }
+        } else if (payload.type === "resize") {
+          if (shellStream) {
+            shellStream.setWindow(payload.rows, payload.cols, 0, 0);
+          }
+        }
+      } catch (err: any) {
+        console.error("Error handling websocket message:", err);
+      }
+    });
+
+    ws.on("close", () => {
+      if (shellStream) {
+        try { shellStream.end(); } catch {}
+      }
+      if (client) {
+        try { client.end(); } catch {}
+      }
+    });
+  });
+}
+
 // Serve frontend assets and boot server
 async function start() {
   if (process.env.NODE_ENV !== "production") {
@@ -1257,9 +1387,11 @@ async function start() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Limuna Linux Panel Server booted on port ${PORT}`);
   });
+
+  setupWebSocketServer(server);
 }
 
 start();

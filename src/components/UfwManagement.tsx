@@ -1025,7 +1025,7 @@ export default function UfwManagement({ token, logAction }: UfwManagementProps) 
 
             {/* Raw Dump Console */}
             {activeTab === "diagnostics" && (
-              <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden flex flex-col h-[400px]">
+              <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden flex flex-col h-[500px] lg:h-[650px]">
                 <div className="px-5 py-3 border-b border-slate-900 bg-slate-950/40 flex justify-between items-center">
                   <span className="text-[10px] font-bold font-mono text-slate-400 uppercase flex items-center gap-1.5">
                     <Terminal className="w-3.5 h-3.5 text-indigo-400" />

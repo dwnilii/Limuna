@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { 
   Server, Cpu, HardDrive, Terminal, Activity, Database, RefreshCw, 
   Play, Trash2, LogOut, Key, Lock, User, Folder, CheckCircle, 
   AlertTriangle, ChevronDown, ChevronRight, Info, Search, ArrowRightLeft,
-  X, Check, Terminal as ShellIcon, FileText, Shield, Citrus
+  X, Check, Terminal as ShellIcon, FileText, Shield, Citrus, Sun, Moon
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
@@ -16,6 +16,7 @@ import UserManagement from "./components/UserManagement";
 import BackupManagement from "./components/BackupManagement";
 import LogViewer from "./components/LogViewer";
 import UfwManagement from "./components/UfwManagement";
+import { SshTerminal } from "./components/SshTerminal";
 
 // Local system format helper for bytes
 function formatBytes(bytes: number, decimals = 2) {
@@ -46,6 +47,20 @@ export default function App() {
 
   // Navigation tab
   const [activeTab, setActiveTab] = useState<"dashboard" | "lvm" | "disks" | "processes" | "terminal" | "users" | "backups" | "logs">("dashboard");
+
+  // Theme state
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("limuna-theme");
+    return saved !== "light";
+  });
+
+  const toggleTheme = () => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem("limuna-theme", next ? "dark" : "light");
+      return next;
+    });
+  };
 
   // Users & Groups states
   const [users, setUsers] = useState<LinuxUser[]>([]);
@@ -247,6 +262,15 @@ export default function App() {
     return () => clearInterval(interval);
   }, [token, autoRefresh, selectedLV]);
 
+  // Terminal scrolling ref
+  const terminalBottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (activeTab === "terminal" && terminalBottomRef.current) {
+      terminalBottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [terminalLogs, isExecutingTerminal, activeTab]);
+
   // Execute terminal command
   const executeTerminalCommand = async (commandToExecute = terminalCmd, sudo = useSudoForTerminal) => {
     if (!commandToExecute.trim() || !token) return;
@@ -273,7 +297,7 @@ export default function App() {
         useSudo: sudo,
       };
 
-      setTerminalLogs(prev => [newLog, ...prev]);
+      setTerminalLogs(prev => [...prev, newLog]);
       if (commandToExecute === terminalCmd) {
         setTerminalCmd("");
       }
@@ -286,7 +310,7 @@ export default function App() {
         isError: true,
         useSudo: sudo,
       };
-      setTerminalLogs(prev => [errorLog, ...prev]);
+      setTerminalLogs(prev => [...prev, errorLog]);
       logAction("Terminal Execution Failed", `Command failed: "${commandToExecute}". Error: ${error.message || "Network request failed"}`, "error");
     } finally {
       setIsExecutingTerminal(false);
@@ -511,7 +535,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className={`min-h-screen ${isDarkMode ? "dark" : "light"} bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200`}>
       
       {/* Header and connected server bar */}
       <header className="border-b border-slate-900 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -527,44 +551,65 @@ export default function App() {
           </div>
         </div>
 
-        {connectedServer && (
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <div className="text-xs">
-                <div className="text-slate-400 font-mono">
-                  {connectedServer.username}@{connectedServer.host}:{connectedServer.port}
-                </div>
-                {systemInfo && (
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                    {systemInfo.os} ({systemInfo.kernel})
+        <div className="flex items-center gap-4 ml-auto sm:ml-0">
+          {/* Theme Switcher Button */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-medium"
+            title={isDarkMode ? "Switch to Light Theme" : "Switch to Dark Theme"}
+          >
+            {isDarkMode ? (
+              <>
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span className="hidden md:inline text-slate-400">Light Mode</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 text-slate-500" />
+                <span className="hidden md:inline text-slate-500">Dark Mode</span>
+              </>
+            )}
+          </button>
+
+          {connectedServer && (
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-lg px-3 py-1.5 flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="text-xs">
+                  <div className="text-slate-400 font-mono">
+                    {connectedServer.username}@{connectedServer.host}:{connectedServer.port}
                   </div>
-                )}
+                  {systemInfo && (
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                      {systemInfo.os} ({systemInfo.kernel})
+                    </div>
+                  )}
+                </div>
               </div>
+
+              <button 
+                onClick={() => fetchMetrics()} 
+                disabled={isLoadingMetrics}
+                title="Refresh Stats"
+                className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingMetrics ? "animate-spin" : ""}`} />
+              </button>
+
+              <button 
+                onClick={handleDisconnect}
+                className="flex items-center gap-2 text-xs bg-rose-950/30 hover:bg-rose-950/60 text-rose-400 border border-rose-900/30 hover:border-rose-800/40 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Disconnect</span>
+              </button>
             </div>
-
-            <button 
-              onClick={() => fetchMetrics()} 
-              disabled={isLoadingMetrics}
-              title="Refresh Stats"
-              className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoadingMetrics ? "animate-spin" : ""}`} />
-            </button>
-
-            <button 
-              onClick={handleDisconnect}
-              className="flex items-center gap-2 text-xs bg-rose-950/30 hover:bg-rose-950/60 text-rose-400 border border-rose-900/30 hover:border-rose-800/40 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Disconnect</span>
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 flex flex-col gap-6">
+      <main className="flex-1 max-w-7xl xl:max-w-[1550px] 2xl:max-w-[1850px] w-full mx-auto p-4 md:p-6 lg:p-8 flex flex-col gap-6">
         
         {/* Connection Form (If not connected) */}
         {!token ? (
@@ -765,130 +810,167 @@ export default function App() {
           </div>
         ) : (
           /* Main Application UI */
-          <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* Nav Menu */}
-            <div className="flex flex-wrap border-b border-slate-900 gap-1 bg-slate-900/30 p-1.5 rounded-xl border border-slate-800/40">
-              <button
-                onClick={() => setActiveTab("dashboard")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "dashboard"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Activity className="w-4 h-4" />
-                <span>Dashboard</span>
-              </button>
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-3 xl:col-span-2 bg-slate-900/30 border border-slate-800/40 p-4 rounded-2xl flex flex-row overflow-x-auto lg:flex-col gap-6 lg:gap-5 sticky top-24 scrollbar-thin">
               
-              <button
-                onClick={() => {
-                  setActiveTab("lvm");
-                  fetchMetrics();
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "lvm"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Database className="w-4 h-4" />
-                <span>LVM & Filesystem Resizer</span>
-              </button>
+              {/* Category 1: Monitoring */}
+              <div className="space-y-1.5 shrink-0 w-[220px] lg:w-full">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 block">
+                  Monitoring & Status
+                </span>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => setActiveTab("dashboard")}
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "dashboard"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Activity className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  </button>
 
-              <button
-                onClick={() => {
-                  setActiveTab("disks");
-                  fetchMetrics();
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "disks"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <HardDrive className="w-4 h-4" />
-                <span>Block Devices (lsblk)</span>
-              </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("processes");
+                      fetchMetrics();
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "processes"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <Cpu className="w-4 h-4" />
+                    <span>Processes</span>
+                  </button>
 
-              <button
-                onClick={() => {
-                  setActiveTab("processes");
-                  fetchMetrics();
-                }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "processes"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Cpu className="w-4 h-4" />
-                <span>Processes</span>
-              </button>
+                  <button
+                    onClick={() => setActiveTab("logs")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "logs"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Audit Logs</span>
+                  </button>
+                </div>
+              </div>
 
-              <button
-                onClick={() => setActiveTab("terminal")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "terminal"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <ShellIcon className="w-4 h-4" />
-                <span>SSH Shell</span>
-              </button>
+              {/* Category 2: Disk & LVM */}
+              <div className="space-y-1.5 shrink-0 w-[220px] lg:w-full">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 block">
+                  Disk & Volumes
+                </span>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                      setActiveTab("lvm");
+                      fetchMetrics();
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "lvm"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <Database className="w-4 h-4" />
+                    <span>LVM Partition Resizer</span>
+                  </button>
 
-              <button
-                onClick={() => setActiveTab("users")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "users"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <User className="w-4 h-4" />
-                <span>Users & Groups</span>
-              </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab("disks");
+                      fetchMetrics();
+                    }}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "disks"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <HardDrive className="w-4 h-4" />
+                    <span>Block Devices (lsblk)</span>
+                  </button>
+                </div>
+              </div>
 
-              <button
-                onClick={() => setActiveTab("ufw")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "ufw"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Shield className="w-4 h-4" />
-                <span>UFW Firewall</span>
-              </button>
+              {/* Category 3: Security & Network */}
+              <div className="space-y-1.5 shrink-0 w-[220px] lg:w-full">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 block">
+                  Security & Network
+                </span>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => setActiveTab("ufw")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "ufw"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>UFW Firewall</span>
+                  </button>
 
-              <button
-                onClick={() => setActiveTab("backups")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "backups"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <Database className="w-4 h-4" />
-                <span>Disaster Backups</span>
-              </button>
+                  <button
+                    onClick={() => setActiveTab("users")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "users"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Users & Groups</span>
+                  </button>
+                </div>
+              </div>
 
-              <button
-                onClick={() => setActiveTab("logs")}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === "logs"
-                    ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                <span>Audit Logs</span>
-              </button>
+              {/* Category 4: Backups & Utilities */}
+              <div className="space-y-1.5 shrink-0 w-[220px] lg:w-full">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 block">
+                  System Utilities
+                </span>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => setActiveTab("terminal")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "terminal"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <ShellIcon className="w-4 h-4" />
+                    <span>SSH Shell Terminal</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("backups")}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                      activeTab === "backups"
+                        ? "bg-slate-900 text-indigo-400 shadow-sm border border-slate-800"
+                        : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/10"
+                    }`}
+                  >
+                    <Database className="w-4 h-4" />
+                    <span>Disaster Backups</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
 
             {/* TAB CONTENTS */}
-            <div className="flex-1 min-h-[500px]">
+            <div className="lg:col-span-9 xl:col-span-10 flex flex-col gap-6">
               
               {/* Dashboard Tab */}
               {activeTab === "dashboard" && (
@@ -1646,130 +1728,8 @@ export default function App() {
               )}
 
               {/* Terminal SSH Tab */}
-              {activeTab === "terminal" && (
-                <div className="space-y-6">
-                  
-                  {/* Console Container */}
-                  <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 space-y-4">
-                    
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
-                      <div>
-                        <h3 className="font-bold text-white text-base">Direct SSH Console</h3>
-                        <p className="text-xs text-slate-400 mt-1">Execute safe custom scripts or admin commands directly on the server</p>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-3">
-                        <label className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-slate-950 border border-slate-850 px-3 py-1.5 rounded-lg cursor-pointer select-none">
-                          <input 
-                            type="checkbox" 
-                            checked={useSudoForTerminal} 
-                            onChange={(e) => setUseSudoForTerminal(e.target.checked)}
-                            className="accent-indigo-500 rounded border-slate-800 bg-slate-950" 
-                          />
-                          <span>Sudo Mode</span>
-                        </label>
-                        
-                        <button 
-                          onClick={() => setTerminalLogs([])}
-                          className="text-xs text-slate-500 hover:text-slate-300 font-mono bg-slate-950 border border-slate-850 px-3 py-1.5 rounded-lg cursor-pointer"
-                        >
-                          Clear Screen
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Presets Grid */}
-                    <div className="flex flex-wrap gap-2 text-xs font-mono">
-                      <span className="text-slate-500 self-center mr-1">Presets:</span>
-                      <button 
-                        onClick={() => executeTerminalCommand("df -h", false)}
-                        className="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-400 hover:text-slate-200 rounded transition-colors cursor-pointer"
-                      >
-                        df -h
-                      </button>
-                      <button 
-                        onClick={() => executeTerminalCommand("ip a || ip route", false)}
-                        className="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-400 hover:text-slate-200 rounded transition-colors cursor-pointer"
-                      >
-                        ip address
-                      </button>
-                      <button 
-                        onClick={() => executeTerminalCommand("systemctl list-units --type=service --state=running | head -n 25", true)}
-                        className="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-400 hover:text-slate-200 rounded transition-colors cursor-pointer"
-                      >
-                        running services
-                      </button>
-                      <button 
-                        onClick={() => executeTerminalCommand("ss -tulpn", true)}
-                        className="px-2.5 py-1.5 bg-slate-950 hover:bg-slate-900 border border-slate-850 text-slate-400 hover:text-slate-200 rounded transition-colors cursor-pointer"
-                      >
-                        open ports
-                      </button>
-                    </div>
-
-                    {/* Console Input Bar */}
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <span className="absolute left-4 top-3 text-slate-500 font-mono select-none">$</span>
-                        <input
-                          type="text"
-                          placeholder="Enter shell command to run on target server (e.g. uname -a, service nginx status)..."
-                          value={terminalCmd}
-                          onChange={(e) => setTerminalCmd(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !isExecutingTerminal) {
-                              executeTerminalCommand();
-                            }
-                          }}
-                          className="w-full bg-slate-950 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 rounded-xl pl-9 pr-4 py-2.5 text-slate-100 placeholder-slate-600 font-mono text-xs transition-all outline-none"
-                        />
-                      </div>
-                      <button
-                        onClick={() => executeTerminalCommand()}
-                        disabled={isExecutingTerminal || !terminalCmd.trim()}
-                        className="px-5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900/40 text-white font-bold rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-indigo-600/10"
-                      >
-                        {isExecutingTerminal ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Play className="w-3.5 h-3.5" />
-                        )}
-                        <span>Run</span>
-                      </button>
-                    </div>
-
-                    {/* Console Output Screen logs */}
-                    <div className="bg-slate-950 border border-slate-900 rounded-2xl p-5 min-h-[300px] max-h-[500px] overflow-y-auto font-mono text-xs space-y-4 scrollbar-thin leading-relaxed">
-                      {terminalLogs.length > 0 ? (
-                        terminalLogs.map((log, i) => (
-                          <div key={i} className="border-b border-slate-900/60 last:border-none pb-4 last:pb-0">
-                            <div className="flex items-center justify-between text-[10px] text-slate-500 mb-2">
-                              <span className="flex items-center gap-1">
-                                <span className="text-indigo-400 font-bold">$</span> 
-                                <strong className="text-slate-300 font-semibold">{log.command}</strong>
-                                {log.useSudo && <span className="bg-rose-950 text-rose-400 px-1 py-0.1 text-[9px] rounded font-bold uppercase ml-1">sudo</span>}
-                              </span>
-                              <span>{log.timestamp}</span>
-                            </div>
-                            <pre className={`whitespace-pre-wrap rounded-lg p-3 ${
-                              log.isError 
-                                ? "bg-rose-950/20 border border-rose-900/20 text-rose-400" 
-                                : "bg-slate-900/40 border border-slate-800/40 text-slate-300"
-                            }`}>
-                              {log.output.trim() || "[No output returned]"}
-                            </pre>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="h-[250px] flex flex-col items-center justify-center text-slate-600">
-                          <Terminal className="w-10 h-10 mb-2 text-slate-700" />
-                          <span>Console is ready. Type a command or click a preset above.</span>
-                        </div>
-                      )}
-                    </div>
-
-                  </div>
-                </div>
+              {activeTab === "terminal" && token && (
+                <SshTerminal token={token} connectedServer={connectedServer} />
               )}
 
               {activeTab === "users" && token && (
@@ -1804,10 +1764,10 @@ export default function App() {
 
       <footer className="border-t border-slate-900 py-6 px-6 text-center text-xs text-slate-500 font-mono flex flex-col sm:flex-row sm:justify-between items-center gap-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <span>Limuna Admin Control Panel v1.0.0</span>
+          <span>Limuna Admin Control Panel v1.1.0</span>
           <span className="hidden sm:inline text-slate-700">|</span>
           <span className="text-slate-400 font-sans">
-            Created by <span className="font-semibold text-amber-500">D.khandan v1.0</span>
+            Created by <span className="font-semibold text-amber-500">D.khandan v1.1</span>
           </span>
         </div>
         <div className="flex items-center gap-1 bg-slate-900/50 px-2.5 py-1 rounded border border-slate-800 text-[10px]">

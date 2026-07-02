@@ -1,1 +1,564 @@
 @import "tailwindcss";
+
+/* --- Soft Light Theme overrides for Limuna --- */
+/* Designed to be beautiful, clean, modern, and gentle on the eyes (warm stone/zinc shades) */
+
+.light {
+  background-color: #fafaf9 !important; /* warm stone-50 background */
+  color: #1c1917 !important; /* stone-900 */
+}
+
+/* Master backgrounds */
+.light.bg-slate-950,
+.light .bg-slate-950 {
+  background-color: #fafaf9 !important; /* stone-50 */
+}
+
+/* Headers, panels, and card components */
+.light header,
+.light .bg-slate-900,
+.light .bg-slate-900\/40,
+.light .bg-slate-900\/50,
+.light .bg-slate-900\/80 {
+  background-color: #ffffff !important; /* clear white card/header */
+  border-color: #e7e5e4 !important; /* stone-200 border */
+}
+
+/* Sub-containers, table headers, inactive tabs, nested panels, or inner fills */
+.light .bg-slate-900\/30,
+.light .bg-slate-950\/30,
+.light .bg-slate-950\/40,
+.light .bg-slate-950\/50,
+.light .bg-slate-950\/80,
+.light .bg-slate-900\/80.border-slate-800 {
+  background-color: #f5f5f4 !important; /* soft warm stone-100/zinc-100 fill */
+  border-color: #e7e5e4 !important;
+}
+
+/* Secondary dark sections like active dashboard/stat slots */
+.light .bg-slate-950\/40 {
+  background-color: #f5f5f4 !important;
+}
+
+/* Force all inputs, selects, and textareas to have high contrast dark text on white backgrounds */
+.light input,
+.light select,
+.light textarea,
+.light input *,
+.light select *,
+.light textarea * {
+  background-color: #ffffff !important;
+  color: #1c1917 !important; /* deep stone-900 */
+  border-color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Perfect Placeholder Styling for all inputs including host IP and UFW examples */
+.light input::placeholder,
+.light textarea::placeholder,
+.light .placeholder-slate-600::placeholder,
+.light .placeholder-slate-500::placeholder,
+.light .placeholder-slate-600,
+.light .placeholder-slate-500 {
+  color: #94a3b8 !important; /* Gentle Slate-400 for perfect hint indicators */
+  opacity: 0.75 !important;
+}
+
+/* Bright Red and Rose elements for Action buttons in Light Mode */
+.light .bg-red-600,
+.light .bg-red-500,
+.light .bg-rose-600,
+.light .bg-rose-500 {
+  background-color: #ef4444 !important; /* Vibrant Red */
+  color: #ffffff !important;
+}
+
+.light .bg-red-600:hover,
+.light .bg-red-500:hover,
+.light .bg-rose-600:hover,
+.light .bg-rose-500:hover {
+  background-color: #dc2626 !important; /* Rich Darker Red on hover */
+}
+
+/* Interactive hover effects on custom buttons/nav panels */
+.light .hover\:bg-slate-800\/30:hover,
+.light .hover\:bg-slate-900\/10:hover,
+.light tr:hover {
+  background-color: #f1f5f9 !important; /* soft slate-100 */
+}
+
+/* Specific button, input, select, and label styles to avoid dark-mode slate styles in light mode */
+.light button.bg-slate-900,
+.light button.bg-slate-850,
+.light button.bg-slate-800,
+.light button.bg-slate-950,
+.light a.bg-slate-900,
+.light a.bg-slate-850,
+.light a.bg-slate-800,
+.light a.bg-slate-950,
+.light label.bg-slate-900,
+.light label.bg-slate-850,
+.light label.bg-slate-800,
+.light label.bg-slate-950,
+.light input.bg-slate-900,
+.light input.bg-slate-850,
+.light input.bg-slate-800,
+.light input.bg-slate-950,
+.light select.bg-slate-900,
+.light select.bg-slate-850,
+.light select.bg-slate-800,
+.light select.bg-slate-950,
+.light .bg-slate-800 {
+  background-color: #f1f5f9 !important; /* soft, modern slate-100 */
+  color: #0f172a !important; /* deep high contrast slate-900 */
+  border-color: #cbd5e1 !important; /* clear slate-300 border */
+}
+
+/* Clear, crisp inputs/textareas/selects in light mode (including translucent/slate bg overrides) */
+.light input,
+.light textarea,
+.light select,
+.light input[class*="bg-slate-950"],
+.light textarea[class*="bg-slate-950"],
+.light input[class*="bg-slate-900"],
+.light textarea[class*="bg-slate-900"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #64748b !important; /* visible slate-500 placeholder text */
+}
+
+.light button.bg-slate-900:hover,
+.light button.bg-slate-850:hover,
+.light button.bg-slate-800:hover,
+.light button.bg-slate-950:hover,
+.light a.bg-slate-900:hover,
+.light a.bg-slate-850:hover,
+.light a.bg-slate-800:hover,
+.light a.bg-slate-950:hover,
+.light label.bg-slate-950:hover,
+.light .bg-slate-800:hover {
+  background-color: #cbd5e1 !important; /* visible slate-300 on hover */
+  color: #0f172a !important;
+}
+
+/* Keep primary buttons and active states with clean white text on colored backgrounds */
+.light .bg-amber-500,
+.light .bg-indigo-600,
+.light .bg-red-600,
+.light .bg-emerald-600,
+.light .bg-amber-600,
+.light .bg-rose-600,
+.light .bg-indigo-500 {
+  color: #ffffff !important;
+}
+.light .bg-amber-500 *,
+.light .bg-indigo-600 *,
+.light .bg-red-600 *,
+.light .bg-emerald-600 *,
+.light .bg-amber-600 *,
+.light .bg-rose-600 *,
+.light .bg-indigo-500 * {
+  color: #ffffff !important;
+}
+
+/* Legible primary hover rules */
+.light .bg-indigo-600:hover {
+  background-color: #4338ca !important;
+}
+.light .bg-amber-500:hover {
+  background-color: #d97706 !important;
+}
+.light .bg-red-600:hover {
+  background-color: #b91c1c !important;
+}
+
+/* Headings & bold titles */
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light h5,
+.light h6 {
+  color: #1c1917 !important; /* deep stone-900 */
+}
+
+/* Specific main title text gradient handling */
+.light .from-white.to-slate-400 {
+  --tw-gradient-from: #1c1917 !important;
+  --tw-gradient-to: #44403c !important;
+  color: #1c1917 !important;
+}
+
+/* Body and standard descriptive text */
+.light .text-slate-100,
+.light .text-slate-200,
+.light .text-slate-300,
+.light .text-slate-400 {
+  color: #292524 !important; /* slate-800 / stone-800 */
+}
+
+/* Secondary descriptors and metadata */
+.light .text-slate-500 {
+  color: #78716c !important; /* stone-500 */
+}
+
+/* Borders across tables, panels, cards, dividers */
+.light .border-slate-900,
+.light .border-slate-900\/40,
+.light .border-slate-800,
+.light .border-slate-800\/40,
+.light .border-slate-800\/60,
+.light .border-slate-800\/80,
+.light .border-slate-700,
+.light .border-slate-700\/40,
+.light .divide-slate-800\/40 {
+  border-color: #e7e5e4 !important; /* soft stone-200 divider */
+}
+
+/* Special LVM colors & badges (Keep them readable!) */
+.light .text-indigo-400,
+.light .text-indigo-300 {
+  color: #4f46e5 !important; /* Indigo-600 */
+}
+.light .bg-indigo-950\/40,
+.light .bg-indigo-950 {
+  background-color: #e0e7ff !important; /* Indigo-100 */
+  color: #3730a3 !important; /* Indigo-800 */
+}
+.light .border-indigo-900\/30 {
+  border-color: #c7d2fe !important; /* Indigo-200 */
+}
+
+/* Special System Badges */
+.light .bg-emerald-950 {
+  background-color: #d1fae5 !important; /* Emerald-100 */
+  color: #065f46 !important; /* Emerald-800 */
+  border-color: #a7f3d0 !important;
+}
+
+/* Red / Rose Action & Delete Buttons / Banners in Light Mode - Solves "muddy dark red background" complaint */
+.light .bg-red-950\/40,
+.light .bg-red-900\/40,
+.light .bg-rose-950\/30,
+.light .bg-rose-950\/60,
+.light .bg-rose-950\/50,
+.light .bg-red-950\/20,
+.light .bg-rose-950\/20,
+.light .bg-red-900\/20,
+.light .bg-red-950\/10 {
+  background-color: #fee2e2 !important; /* Beautiful soft eye-safe red-100 background */
+}
+
+.light .hover\:bg-red-900\/40:hover,
+.light .hover\:bg-rose-950\/60:hover,
+.light .hover\:bg-red-950\/40:hover {
+  background-color: #fecaca !important; /* clear red-200 on hover */
+}
+
+.light .text-red-400,
+.light .text-rose-400,
+.light .text-red-300,
+.light .text-rose-300 {
+  color: #b91c1c !important; /* Vibrant and highly readable red-700 */
+}
+
+.light .border-red-900\/30,
+.light .border-rose-900\/30,
+.light .border-rose-900\/40,
+.light .border-red-900\/20 {
+  border-color: #fecaca !important; /* soft red-200 border */
+}
+
+/* Progress bars */
+.light .bg-slate-950 {
+  background-color: #e7e5e4 !important; /* stone-200 background for metrics bars */
+}
+
+/* Sidebar Navigation Items in both Light and Dark Modes - Solves hover lag and layout shifting */
+.lg\:col-span-3 button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Light Mode active/inactive transitions */
+.light .lg\:col-span-3 button {
+  background-color: transparent !important;
+  color: #475569 !important; /* Clear, legible slate-600 text */
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.light .lg\:col-span-3 button:hover {
+  background-color: #f1f5f9 !important; /* Soft slate-100 hover */
+  color: #0f172a !important; /* Deep slate-900 */
+}
+
+/* Active navigation item highlight in Light Mode */
+.light .lg\:col-span-3 button.bg-slate-900 {
+  background-color: #e0e7ff !important; /* Royal Indigo-100 background */
+  color: #4f46e5 !important; /* Strong Indigo-600 text */
+  border-color: #c7d2fe !important; /* Gentle Indigo-200 border */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.light .lg\:col-span-3 button.bg-slate-900 * {
+  color: #4f46e5 !important; /* Indigo-600 icons */
+}
+
+/* Dark Mode active/inactive transitions */
+.dark .lg\:col-span-3 button {
+  background-color: transparent !important;
+  color: #94a3b8 !important; /* legible slate-400 text */
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.dark .lg\:col-span-3 button:hover {
+  background-color: rgba(30, 41, 59, 0.4) !important; /* Soft dark slate-800/40 hover */
+  color: #f8fafc !important; /* Bright slate-50 */
+}
+
+/* Active navigation item highlight in Dark Mode */
+.dark .lg\:col-span-3 button.bg-slate-900 {
+  background-color: rgba(79, 70, 229, 0.15) !important; /* Royal Indigo translucent background */
+  color: #818cf8 !important; /* Indigo-400 text */
+  border-color: rgba(99, 102, 241, 0.3) !important; /* Indigo-500/30 border */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .lg\:col-span-3 button.bg-slate-900 * {
+  color: #818cf8 !important; /* Indigo-400 icons */
+}
+
+/* General button cleanup in light mode to avoid muddy dark-mode leftovers */
+.light button.border-slate-800,
+.light button.border-slate-700,
+.light .border-slate-800 button {
+  border-color: #cbd5e1 !important; /* slate-300 border */
+}
+
+.light button:disabled {
+  opacity: 0.5 !important;
+  background-color: #f1f5f9 !important;
+  color: #94a3b8 !important;
+}
+
+/* Specific sub-tab selector buttons inside components (like UFW tabs) */
+.light button.border-transparent.text-slate-500 {
+  color: #64748b !important; /* slate-500 */
+}
+
+.light button.border-indigo-500.text-white {
+  color: #4f46e5 !important; /* indigo-600 */
+  border-color: #4f46e5 !important;
+}
+
+/* Absolute Safe Terminal preservation (Logs console MUST stay black/dark terminal!) */
+.light .bg-slate-950.border.border-slate-800.rounded-2xl,
+.light [id="log-viewer-container"] .bg-slate-950.border.border-slate-800.rounded-2xl {
+  background-color: #0c0a09 !important; /* Dark console */
+  border-color: #292524 !important;
+}
+.light .bg-slate-950.border.border-slate-800.rounded-2xl *,
+.light [id="log-viewer-container"] .bg-slate-950.border.border-slate-800.rounded-2xl * {
+  color: #e7e5e4 !important; /* Light stone-200 terminal font */
+}
+.light .bg-slate-950.border.border-slate-800.rounded-2xl .bg-black\/40 {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+.light .bg-slate-950.border.border-slate-800.rounded-2xl .bg-emerald-500 {
+  background-color: #10b981 !important; /* standard vibrant green dot */
+}
+.light .bg-slate-950.border.border-slate-800.rounded-2xl .text-slate-500 {
+  color: #78716c !important;
+}
+.light .bg-slate-950.border.border-slate-800.rounded-2xl .text-slate-400 {
+  color: #a8a29e !important;
+}
+
+/* Modals & Dialog overlays */
+.light .bg-slate-950\/80 {
+  background-color: rgba(120, 113, 108, 0.6) !important; /* Translucent warm grey backing */
+}
+
+/* UFW Firewall Screen - High Contrast & Complete Readability in Light Mode */
+.light #ufw-management-container {
+  color: #1e293b !important; /* slate-800 text */
+}
+
+/* Background panels */
+.light #ufw-management-container .bg-slate-900\/40,
+.light #ufw-management-container .bg-slate-900\/30 {
+  background-color: #f8fafc !important; /* soft slate-50 */
+  border-color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Main title descriptors */
+.light #ufw-management-container h2,
+.light #ufw-management-container h3,
+.light #ufw-management-container h4 {
+  color: #0f172a !important; /* deep slate-900 */
+}
+
+.light #ufw-management-container .text-slate-400 {
+  color: #475569 !important; /* readable slate-600 */
+}
+
+.light #ufw-management-container .text-slate-500 {
+  color: #64748b !important; /* slate-500 */
+}
+
+/* Refresh button */
+.light #ufw-management-container button.text-slate-200 {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+.light #ufw-management-container button.text-slate-200:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Firewall protection card status indicator */
+.light #ufw-management-container .bg-emerald-950\/40 {
+  background-color: #d1fae5 !important; /* soft green-100 */
+  color: #065f46 !important; /* emerald-800 */
+  border-color: #a7f3d0 !important;
+}
+.light #ufw-management-container .bg-red-950\/40 {
+  background-color: #fee2e2 !important; /* soft red-100 */
+  color: #991b1b !important; /* red-800 */
+  border-color: #fecaca !important;
+}
+
+/* Disable / Enable UFW buttons */
+.light #ufw-management-container button.bg-red-950\/60 {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+.light #ufw-management-container button.bg-red-950\/60:hover {
+  background-color: #fecaca !important;
+  color: #991b1b !important;
+}
+
+/* Presets button grid */
+.light #ufw-management-container .grid button.bg-slate-950 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+.light #ufw-management-container .grid button.bg-slate-950:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #4f46e5 !important;
+}
+.light #ufw-management-container .grid button.bg-slate-950 .text-slate-300 {
+  color: #1e293b !important; /* slate-800 */
+}
+.light #ufw-management-container .grid button.bg-slate-950 .text-slate-500 {
+  color: #64748b !important; /* slate-500 */
+}
+
+/* Firewall Rules table layout */
+.light #ufw-management-container table thead {
+  background-color: #f1f5f9 !important; /* light slate-100 head */
+  border-bottom-color: #cbd5e1 !important;
+}
+.light #ufw-management-container table thead th {
+  color: #475569 !important; /* clear slate-600 headers */
+}
+
+.light #ufw-management-container table tbody tr {
+  border-bottom-color: #f1f5f9 !important;
+}
+.light #ufw-management-container table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Priority rule number */
+.light #ufw-management-container table td.text-indigo-400 {
+  color: #4f46e5 !important; /* clear indigo-600 */
+}
+
+/* Destination Target column value */
+.light #ufw-management-container table td.text-slate-200 {
+  color: #0f172a !important; /* deep slate-900 */
+}
+
+/* Source Allowed column value */
+.light #ufw-management-container table td.text-slate-300 {
+  color: #334155 !important; /* slate-700 */
+}
+
+/* Rule action badges */
+.light #ufw-management-container table span[class*="bg-emerald-950\/40"] {
+  background-color: #d1fae5 !important; /* emerald-100 */
+  color: #065f46 !important; /* emerald-800 */
+  border-color: #a7f3d0 !important;
+}
+.light #ufw-management-container table span[class*="bg-amber-950\/40"] {
+  background-color: #fef3c7 !important; /* amber-100 */
+  color: #92400e !important; /* amber-800 */
+  border-color: #fde68a !important;
+}
+.light #ufw-management-container table span[class*="bg-red-950\/40"] {
+  background-color: #fee2e2 !important; /* red-100 */
+  color: #991b1b !important; /* red-800 */
+  border-color: #fecaca !important;
+}
+
+/* Table rules comment label block */
+.light #ufw-management-container table span.bg-slate-800\/60 {
+  background-color: #f1f5f9 !important; /* soft slate-100 background */
+  color: #334155 !important; /* rich slate-700 font */
+  border-color: #cbd5e1 !important; /* slate-300 border */
+}
+
+/* Action button icons in table rows */
+.light #ufw-management-container table button[class*="text-indigo-400"] {
+  background-color: #ffffff !important;
+  color: #4f46e5 !important; /* indigo-600 */
+  border-color: #cbd5e1 !important;
+}
+.light #ufw-management-container table button[class*="text-indigo-400"]:hover {
+  background-color: #e0e7ff !important; /* indigo-100 */
+  border-color: #a5b4fc !important;
+}
+
+.light #ufw-management-container table button[class*="text-slate-300"] {
+  background-color: #ffffff !important;
+  color: #475569 !important; /* slate-600 */
+  border-color: #cbd5e1 !important;
+}
+.light #ufw-management-container table button[class*="text-slate-300"]:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.light #ufw-management-container table button[class*="bg-red-950\/40"] {
+  background-color: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+.light #ufw-management-container table button[class*="bg-red-950\/40"]:hover {
+  background-color: #fecaca !important;
+  color: #991b1b !important;
+}
+
+/* Custom rule input forms */
+.light #ufw-management-container select,
+.light #ufw-management-container input[type="text"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+.light #ufw-management-container select:focus,
+.light #ufw-management-container input[type="text"]:focus {
+  border-color: #4f46e5 !important;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2) !important;
+}
+
+
+
