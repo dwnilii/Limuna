@@ -16,7 +16,7 @@ It maintains a persistent SSH connection cache and temporarily caches safe read-
 
 ---
 
-![Dashboard](docs/images/1.png)![Dashboard](docs/images/2.png)![Dashboard](docs/images/3.png)![Dashboard](docs/images/4.png)![Dashboard](docs/images/5.png)![Dashboard](docs/images/6.png)![Dashboard](docs/images/7.png)
+![Dashboard](images/1.png)![Dashboard](images/2.png)![Dashboard](images/3.png)![Dashboard](images/4.png)![Dashboard](images/5.png)![Dashboard](images/6.png)![Dashboard](images/7.png)
 
 
 ## Features
